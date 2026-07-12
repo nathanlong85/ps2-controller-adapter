@@ -1,0 +1,17 @@
+{
+  "change": "ps2-guitar-adapter",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "comet-handoff.sh",
+  "context_hash": "80125765d49d9186ef678f53e3d5a13c9790025436be4b851cc9d82547e7444e",
+  "files": [
+    { "path": "openspec/changes/ps2-guitar-adapter/proposal.md", "sha256": "0af7143af18ebca6f3101386b2f9d792f4b80de09ad37a94b9e08f0145562f58" },
+    { "path": "openspec/changes/ps2-guitar-adapter/design.md", "sha256": "c6271b3a5546ff676a09bdcd578f9172f34ee9d1cd7b016e3e38351c5ae1aaa9" },
+    { "path": "openspec/changes/ps2-guitar-adapter/tasks.md", "sha256": "a7b5659b0ec6a585b3f9792f7bf4b507a1e5786837700ba896ed2c2c6673140d" },
+    { "path": "openspec/changes/ps2-guitar-adapter/specs/guitar-to-ps2-mapping/spec.md", "sha256": "de46df65c7d8d114f10761d0ae5dccf24461c6f80ec787a8c6aec2dd114ab06d" },
+    { "path": "openspec/changes/ps2-guitar-adapter/specs/ps2-analog-mode/spec.md", "sha256": "50627f7cdcc989f3c41b44267b2c7a4fe0a0366be4e9f3e28ca12f73e92b764b" },
+    { "path": "openspec/changes/ps2-guitar-adapter/specs/ps2-protocol/spec.md", "sha256": "3de29c0f4741511d69cce1305d97fb5ab228f095897f5454765cfa32f356a507" },
+    { "path": "openspec/changes/ps2-guitar-adapter/specs/usb-guitar-input/spec.md", "sha256": "b34cbd481e30313c26d07c62faf0661cb9001d0a30124cd8a26314eaf38f93ec" }
+  ]
+}
