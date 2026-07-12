@@ -53,3 +53,11 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+.code-review-graph/
+.claude/
+.agent/
+.agents/
+.tokensave/
+.codegraph/
+.cursor
