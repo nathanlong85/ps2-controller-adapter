@@ -1,12 +1,15 @@
 # Subagent Progress Checkpoint — ps2-guitar-adapter
 
 ## Current Task
-Task 1 COMPLETE (1.1-1.3 confirmed done by user: hardware retrieved, blink example verified, wire colors matched standard convention, no deviations). Discarded a stale uncommitted Pico SDK template diff at repo root (ps2-controller-adapter.c / CMakeLists.txt) — unrelated to any task, superseded by Task 2's own scaffolding under src/.
-
-Next: Plan Task 2: PS2 Protocol Wiring Smoke Test (mapped to OpenSpec tasks.md section 2, tasks 2.1-2.2)
+Plan Task 2: PS2 Protocol Wiring Smoke Test — Steps 1,2,4 [CODE] (mapped to OpenSpec tasks.md section 2, tasks 2.1-2.2). Step 3 [HW] deferred to coordinator relay after review passes.
 
 ## Stage
-Ready to dispatch Task 2 Step 1-2 [CODE] (scaffold CMakeLists.txt/pico_sdk_import.cmake/src/main.c) to a background implementer subagent; Step 3 [HW] will be relayed to the user afterward.
+implementing (dispatched background implementer, base-ref for this task: 4465738a9b8bfc0df5151479ab32e5b31443c739)
+
+## Notes
+- brief: .superpowers/sdd/task-2-brief.md
+- report: .superpowers/sdd/task-2-report.md
+- No host-testable logic exists for this task (SDK/hardware-dependent GPIO firmware; plan's host-buildable test suite begins at Task 3). Acceptance evidence is a successful cross-compile build, not RED/GREEN unit tests.
 
 ## Notes
 - HW-step handling mode (user-confirmed): coordinator pauses and relays [HW] steps directly; [CODE] steps get dispatched to fresh background implementer subagents per the plan Task.
