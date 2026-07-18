@@ -1,8 +1,8 @@
 ## 1. Hardware Prep & Toolchain Bring-Up
 
-- [ ] 1.1 Retrieve Pico 2W, CRKD Gibson Les Paul controller, PS2 console/test harness, powered USB hub, and PS2 controller cable from storage
-- [ ] 1.2 Verify VS Code + official Raspberry Pi Pico extension toolchain still works: build and flash the "blink" example to the Pico 2W
-- [ ] 1.3 Verify PS2 cable wire colors against the documented pinout using a multimeter; record any deviations
+- [x] 1.1 Retrieve Pico 2W, CRKD Gibson Les Paul controller, PS2 console/test harness, powered USB hub, and PS2 controller cable from storage
+- [x] 1.2 Verify VS Code + official Raspberry Pi Pico extension toolchain still works: build and flash the "blink" example to the Pico 2W
+- [x] 1.3 Verify PS2 cable wire colors against the documented pinout using a multimeter; record any deviations (matched standard convention, no deviations)
 
 ## 2. PS2 Protocol Wiring Smoke Test (no PIO yet)
 

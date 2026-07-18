@@ -7,20 +7,20 @@ All three steps below are hardware-only — no code yet.
 
 ## Step 1: Retrieve hardware
 
-- [ ] Raspberry Pi Pico 2W
-- [ ] CRKD Gibson Les Paul controller
-- [ ] PS2 console (or test harness)
-- [ ] Powered USB hub
-- [ ] PS2 controller cable (for splicing/breakout)
-- [ ] Multimeter
+- [x] Raspberry Pi Pico 2W
+- [x] CRKD Gibson Les Paul controller
+- [x] PS2 console (or test harness)
+- [x] Powered USB hub
+- [x] PS2 controller cable (for splicing/breakout)
+- [x] Multimeter
 
 ## Step 2: Verify toolchain with blink example
 
-- [ ] Build the standard Pico SDK "blink" example (`blink/blink.c` from the official `pico-examples` repo) using VS Code + the Raspberry Pi Pico extension
-- [ ] **Target the Pico 2W explicitly** — `-DPICO_BOARD=pico2_w`. The SDK defaults to the original Pico 1 board; forgetting this flag produces a binary that won't run on the 2W.
-- [ ] Flash it and confirm the onboard LED blinks
+- [x] Build the standard Pico SDK "blink" example (`blink/blink.c` from the official `pico-examples` repo) using VS Code + the Raspberry Pi Pico extension
+- [x] **Target the Pico 2W explicitly** — `-DPICO_BOARD=pico2_w`. The SDK defaults to the original Pico 1 board; forgetting this flag produces a binary that won't run on the 2W.
+- [x] Flash it and confirm the onboard LED blinks
 
-If it fails: note the specific error before continuing — toolchain setup needs to be resolved first.
+Confirmed working — toolchain verified.
 
 ## Step 3: Verify PS2 cable pinout with a multimeter
 
@@ -37,7 +37,7 @@ Using continuity/resistance mode, trace each wire in the PS2 controller cable ba
 
 Pins 3 (9V), 5 (3.6V), and 8 (no connection) are unused — do **not** wire these.
 
-- [ ] Flag any deviation from common documented wire-color conventions
+- [x] Matched standard documented wire-color conventions — no deviations.
 
 ---
 
