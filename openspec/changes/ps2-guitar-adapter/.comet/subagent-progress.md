@@ -4,12 +4,15 @@
 Plan Task 2: PS2 Protocol Wiring Smoke Test — Steps 1,2,4 [CODE] (mapped to OpenSpec tasks.md section 2, tasks 2.1-2.2). Step 3 [HW] deferred to coordinator relay after review passes.
 
 ## Stage
-implementing (dispatched background implementer, base-ref for this task: 4465738a9b8bfc0df5151479ab32e5b31443c739)
+spec-review (implementer DONE, commit 48c3cfd; task reviewer dispatched)
 
 ## Notes
 - brief: .superpowers/sdd/task-2-brief.md
 - report: .superpowers/sdd/task-2-report.md
-- No host-testable logic exists for this task (SDK/hardware-dependent GPIO firmware; plan's host-buildable test suite begins at Task 3). Acceptance evidence is a successful cross-compile build, not RED/GREEN unit tests.
+- diff package: .superpowers/sdd/review-4465738..48c3cfd.diff
+- implementer commit: 48c3cfd "Add PS2 wiring smoke-test firmware" (task base-ref: 4465738)
+- No host-testable logic exists for this task (SDK/hardware-dependent GPIO firmware; plan's host-buildable test suite begins at Task 3). Acceptance evidence is manual syntax/API review (no Pico SDK toolchain in this sandbox), not RED/GREEN unit tests.
+- Review-fix round: 0
 
 ## Notes
 - HW-step handling mode (user-confirmed): coordinator pauses and relays [HW] steps directly; [CODE] steps get dispatched to fresh background implementer subagents per the plan Task.
