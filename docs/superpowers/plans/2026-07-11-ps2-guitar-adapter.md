@@ -124,7 +124,7 @@ No code changes yet in this task (blink example lives in `pico-examples`, not th
 **Interfaces:**
 - Produces: repo scaffolding (`CMakeLists.txt` targeting `pico2_w` board) that later tasks extend.
 
-- [ ] **Step 1: [CODE] Scaffold the CMake project**
+- [x] **Step 1: [CODE] Scaffold the CMake project**
 
 Create `pico_sdk_import.cmake` by copying the standard boilerplate from the Pico SDK (`$PICO_SDK_PATH/external/pico_sdk_import.cmake`).
 
@@ -159,7 +159,7 @@ pico_add_extra_outputs(ps2_guitar_adapter)
 
 Note: `pico_enable_stdio_usb` is disabled because the Pico's USB port will shortly become the TinyUSB *host* port (Task 4) — diagnostic output uses UART instead. Ask the user to confirm which UART pins/adapter they'll use for serial monitoring before Task 2 Step 3 (needed for them to see the smoke test output).
 
-- [ ] **Step 2: [CODE] Write the GPIO smoke-test program**
+- [x] **Step 2: [CODE] Write the GPIO smoke-test program**
 
 Create `src/main.c`:
 
@@ -237,7 +237,7 @@ Ask the user to:
 
 Expected: user reports serial lines like `ATT asserted (low)` / `ATT released (high) - saw N clock pulses` appearing repeatedly (~60Hz) once the console is on. If ATT toggles but clock_pulses is always 0, COMMAND/CLOCK wiring is likely swapped or disconnected — user reports the actual wire-to-pin mapping used so it can be corrected before Task 3.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add CMakeLists.txt pico_sdk_import.cmake src/main.c
