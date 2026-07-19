@@ -10,16 +10,18 @@ Viewed from the front (the console's controller port opening — the same orient
 you're looking at when plugging a controller in):
 
 ```
-   ______________________
-  / 1    2    3    4    5 \
- |    6    7    8    9     |
-  \________________________/
-      (shield tab, both
-       sides of housing)
+  ______________________________
+ | 1   2   3 | 4   5   6 | 7 . 9 |
+ |___________|___________|_______|
+        (shield tab on the
+         outside of the housing)
 ```
 
-- **Top row (5 pins):** 1, 2, 3, 4, 5
-- **Bottom row (4 pins):** 6, 7, 8, 9
+`.` marks the empty/keyed position where pin 8 would be.
+
+- **Single row, 9 positions grouped in 3s:** 1, 2, 3 | 4, 5, 6 | 7, 8, 9.
+- **Pin 8 is absent on this connector** — the housing has no pin in that position (keys
+  the plug so it can't be inserted rotated 180°); only 8 physical pins are present.
 - **Shield tab:** the connector's metal shell, on the outside of the plastic housing —
   not a numbered pin.
 
