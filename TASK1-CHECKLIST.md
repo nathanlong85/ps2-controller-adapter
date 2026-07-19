@@ -28,12 +28,12 @@ Using continuity/resistance mode, trace each wire in the PS2 controller cable ba
 
 | Pin | Signal | Direction | Wire color (fill in) |
 |-----|--------|-----------|----------------------|
-| 1 | DATA | controller → console | |
-| 2 | COMMAND | console → controller | |
-| 4 | GND | — | |
-| 6 | ATT/CS | console → controller (active low) | |
-| 7 | CLOCK | console → controller | |
-| 9 | ACK | controller → console (open-collector) | |
+| 1 | DATA | controller → console | Brown |
+| 2 | COMMAND | console → controller | Orange |
+| 4 | GND | — | Black |
+| 6 | ATT/CS | console → controller (active low) | Yellow |
+| 7 | CLOCK | console → controller | Blue |
+| 9 | ACK | controller → console (open-collector) | Green |
 
 Pins 3 (9V), 5 (3.6V), and 8 (no connection) are unused — do **not** wire these.
 
