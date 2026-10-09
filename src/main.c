@@ -11,6 +11,7 @@ int main(void) {
     sleep_ms(2000);
     printf("PS2 guitar adapter starting\n");
 
+    ps2_pio_setup();
     multicore_launch_core1(core1_entry);
 
     // Task 4+ will add tuh_task() and mapping updates here.

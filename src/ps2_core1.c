@@ -23,8 +23,9 @@ static_assert(PIN_CLOCK == ps2_slave_PIN_CLOCK, "PIN_CLOCK must match ps2_pio.pi
 #define TX_FIRST_WORD (0xFFu | TX_ACK_FLAG)
 
 // Puts the SM back at entry_point (waiting for ATT low) with empty FIFOs,
-// ACK released (input, output value latched low) and DATA idling high,
-// then preloads byte 0 so it is ready the instant ATT falls.
+// ACK and DATA both released to Hi-Z (output values latched: ACK low, DATA
+// high; the program re-enables DATA's output once ATT falls), then preloads
+// byte 0 so it is ready the instant ATT falls. Takes no SDK locks.
 static void ps2_sm_reset(PIO pio, uint sm, uint offset) {
     const uint32_t mask = (1u << PIN_DATA) | (1u << PIN_ACK);
 
@@ -32,13 +33,18 @@ static void ps2_sm_reset(PIO pio, uint sm, uint offset) {
     pio_sm_clear_fifos(pio, sm);
     pio_sm_restart(pio, sm);
     pio_sm_set_pins_with_mask(pio, sm, 1u << PIN_DATA, mask);
-    pio_sm_set_pindirs_with_mask(pio, sm, 1u << PIN_DATA, mask);
+    pio_sm_set_pindirs_with_mask(pio, sm, 0, mask);
     pio_sm_exec(pio, sm, pio_encode_jmp(offset + ps2_slave_offset_entry_point));
     pio_sm_put(pio, sm, TX_FIRST_WORD);
     pio_sm_set_enabled(pio, sm, true);
 }
 
-void core1_entry(void) {
+// Written once by ps2_pio_setup() on core0 before core1 is launched.
+static PIO ps2_pio;
+static uint ps2_sm;
+static uint ps2_offset;
+
+void ps2_pio_setup(void) {
     PIO pio = pio0;
     uint sm = 0;
     uint offset = pio_add_program(pio, &ps2_slave_program);
@@ -46,6 +52,7 @@ void core1_entry(void) {
     pio_sm_config c = ps2_slave_program_get_default_config(offset);
     sm_config_set_in_pins(&c, PIN_COMMAND);
     sm_config_set_out_pins(&c, PIN_DATA, 1);
+    sm_config_set_set_pins(&c, PIN_DATA, 1);
     sm_config_set_jmp_pin(&c, PIN_ATT);
     sm_config_set_sideset_pins(&c, PIN_ACK);
     // LSB first in both directions; explicit push/pull in the program.
@@ -66,6 +73,16 @@ void core1_entry(void) {
 
     pio_sm_init(pio, sm, offset, &c);
     ps2_sm_reset(pio, sm, offset);
+
+    ps2_pio = pio;
+    ps2_sm = sm;
+    ps2_offset = offset;
+}
+
+void core1_entry(void) {
+    PIO pio = ps2_pio;
+    uint sm = ps2_sm;
+    uint offset = ps2_offset;
 
     shared_state_t state;
     uint8_t response[9];
