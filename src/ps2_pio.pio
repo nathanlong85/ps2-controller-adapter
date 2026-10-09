@@ -1,0 +1,37 @@
+; ps2_pio.pio
+; PS2 controller-side SPI-slave shift register + ACK engine.
+; SPI Mode 3: CPOL=1, CPHA=1. Console is master, we are slave.
+;
+; Pin mapping (set via pio_sm_config in ps2_core1.c):
+;   IN pin 0  = COMMAND (sampled on CLOCK rising edge)
+;   OUT pin 0 = DATA (driven on CLOCK falling edge)
+;   side-set  = ACK (open-drain emulated via pindirs; see ps2_core1.c)
+;   jmp pin   = ATT (active low; used to detect abort/resync)
+
+.program ps2_slave
+.side_set 1 opt
+
+public entry_point:
+await_att_low:
+    wait 0 pin 2            ; wait for ATT low (pin index 2 = ATT in the SM's pin group)
+
+byte_loop:
+    set x, 7                 ; 8 bits per byte
+bit_loop:
+    wait 1 pin 1              ; wait CLOCK rising edge (pin index 1 = CLOCK)
+    in pins, 1                ; sample COMMAND on rising edge
+    wait 0 pin 1              ; wait CLOCK falling edge
+    out pins, 1                ; drive DATA on falling edge
+    jmp x-- bit_loop
+
+    push                      ; push received COMMAND byte to RX FIFO
+    pull                      ; pull next TX byte (or ACK-control word) for next cycle
+
+    jmp pin, no_ack           ; if ATT has gone high (jmp pin = ATT), abort without ACK
+    nop             side 0     ; drive ACK low
+    nop [7]                    ; hold ACK low for required pulse width (tune via ACK-electrical test)
+no_ack:
+    nop             side 1     ; release ACK (side-set drives pindirs, see C wrapper)
+
+    jmp pin, await_att_low     ; if ATT high, resync to start
+    jmp byte_loop               ; else continue to next byte in this exchange
