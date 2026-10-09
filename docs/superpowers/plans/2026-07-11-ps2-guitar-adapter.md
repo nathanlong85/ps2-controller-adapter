@@ -375,7 +375,7 @@ Note: the seqlock itself (`shared_state.c`) is exercised indirectly by the mappi
 
 ### Step group B: Protocol response-byte assembly (host-testable)
 
-- [ ] **Step 4: [CODE] Write failing test for digital response assembly**
+- [x] **Step 4: [CODE] Write failing test for digital response assembly**
 
 Create `tests/host/test_ps2_protocol_bytes.c`:
 
@@ -409,12 +409,12 @@ int main(void) {
 }
 ```
 
-- [ ] **Step 5: [CODE] Run test to verify it fails (function not yet defined)**
+- [x] **Step 5: [CODE] Run test to verify it fails (function not yet defined)**
 
 Run: `cd tests/host && cmake -B build && cmake --build build`
 Expected: FAIL — compile error, `ps2_build_digital_response` and `ps2_protocol.h` do not exist yet.
 
-- [ ] **Step 6: [CODE] Implement ps2_protocol.h / .c (digital response only for now)**
+- [x] **Step 6: [CODE] Implement ps2_protocol.h / .c (digital response only for now)**
 
 Create `src/ps2_protocol.h`:
 
@@ -445,7 +445,7 @@ void ps2_build_digital_response(uint8_t button_byte0, uint8_t button_byte1, uint
 }
 ```
 
-- [ ] **Step 7: [CODE] Run test to verify it passes**
+- [x] **Step 7: [CODE] Run test to verify it passes**
 
 Run: `cd tests/host/build && ctest --output-on-failure`
 Expected: `1/1 Test #1: ps2_protocol_bytes ..... Passed`, output includes both `PASS` lines and `All tests passed.`
