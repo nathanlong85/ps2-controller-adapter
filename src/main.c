@@ -27,14 +27,21 @@ int main(void) {
     printf("PS2 wiring smoke test starting\n");
 
     bool last_att = true;
+    bool last_clock = true;
     uint32_t clock_pulses = 0;
     bool counting = false;
+    uint32_t idle_print_counter = 0;
 
     while (true) {
         bool att = gpio_get(PIN_ATT);
+        bool clk = gpio_get(PIN_CLOCK);
 
         if (last_att && !att) {
-            printf("ATT asserted (low)\n");
+            // No printf here: the UART print can block for >1ms at the
+            // default baud rate, which is longer than an entire transaction
+            // (~66us observed on a logic analyzer) — it was swallowing every
+            // clock pulse before counting ever saw them. Report everything
+            // once, at ATT release, after counting is done.
             clock_pulses = 0;
             counting = true;
         }
@@ -45,15 +52,17 @@ int main(void) {
         }
         last_att = att;
 
-        if (counting) {
-            static bool last_clock = true;
-            bool clk = gpio_get(PIN_CLOCK);
-            if (last_clock && !clk) {
-                clock_pulses++;
-            }
-            last_clock = clk;
+        if (counting && last_clock && !clk) {
+            clock_pulses++;
         }
+        last_clock = clk;
 
-        sleep_us(5);
+        if (!counting) {
+            if (++idle_print_counter >= 2000000) {
+                idle_print_counter = 0;
+                printf("idle levels: ATT=%d CLOCK=%d COMMAND=%d\n",
+                       att, clk, gpio_get(PIN_COMMAND));
+            }
+        }
     }
 }

@@ -60,10 +60,14 @@ signal-level bring-up described in Task 2 onward.
 | GPIO 2    | ATT/CS     | Yellow     |
 | GPIO 3    | CLOCK      | Blue       |
 | GPIO 4    | COMMAND    | Orange     |
+| GPIO 5    | DATA       | Brown      |
+| GPIO 6    | ACK        | Green      |
 | any GND pin | GND (pin 4) | Black    |
 
-DATA (pin 1, brown) and ACK (pin 9, green) are not wired yet at this stage — Task 2 is
-listen-only. They'll be connected starting in Task 3.
+DATA and ACK are physically wired to GPIO 5/6 ahead of schedule (soldered alongside the
+other signals), but Task 2's firmware is listen-only and doesn't configure or read these
+two pins yet — they stay unused (floating input, RP2350 default reset state) until
+Task 3 adds the ACK handshake and DATA shift-in logic.
 
 ---
 

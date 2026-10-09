@@ -14,13 +14,15 @@ endif()
 # ====================================================================================
 cmake_minimum_required(VERSION 3.13)
 
+# Must be set before pico_sdk_import.cmake, which otherwise defaults
+# PICO_BOARD to "pico" (RP2040) and silently ignores a later set() here.
+set(PICO_BOARD pico2_w)
+
 include(pico_sdk_import.cmake)
 
 project(ps2_guitar_adapter C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-
-set(PICO_BOARD pico2_w)
 
 pico_sdk_init()
 

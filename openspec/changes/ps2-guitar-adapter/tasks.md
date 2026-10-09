@@ -7,7 +7,7 @@
 ## 2. PS2 Protocol Wiring Smoke Test (no PIO yet)
 
 - [x] 2.1 Write minimal GPIO polling code to detect ATT/CS going low and CLOCK pulses from a real PS2 console, printing observations over serial
-- [ ] 2.2 Confirm via serial output that wiring (DATA/COMMAND/ATT/CLOCK/GND) is correct before proceeding to PIO
+- [x] 2.2 Confirm via serial output that wiring (DATA/COMMAND/ATT/CLOCK/GND) is correct before proceeding to PIO (16 clock pulses/transaction over serial, matching a logic-analyzer capture — see commit for root causes found and fixed along the way)
 
 ## 3. Shared-State Design & PIO PS2 SPI-Slave Implementation (`ps2-protocol`)
 
