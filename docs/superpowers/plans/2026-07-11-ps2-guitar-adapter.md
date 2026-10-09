@@ -450,7 +450,7 @@ void ps2_build_digital_response(uint8_t button_byte0, uint8_t button_byte1, uint
 Run: `cd tests/host/build && ctest --output-on-failure`
 Expected: `1/1 Test #1: ps2_protocol_bytes ..... Passed`, output includes both `PASS` lines and `All tests passed.`
 
-- [ ] **Step 8: [CODE] Write the PIO program (shift-register + ACK + resync)**
+- [x] **Step 8: [CODE] Write the PIO program (shift-register + ACK + resync)**
 
 Create `src/ps2_pio.pio`. This implements only the electrical/timing layer per the design doc's "PIO scope" decision: it samples COMMAND on CLOCK rising edge, shifts DATA out on CLOCK falling edge, pulses ACK low after each byte (except when C signals "last byte"), and resyncs whenever ATT rises. Byte content comes from the TX FIFO; received COMMAND bytes go to the RX FIFO so C can dispatch based on command.
 
@@ -496,7 +496,7 @@ no_ack:
 
 Note: this is a first-pass PIO skeleton. Exact instruction-level ACK pulse width and side-set-to-pindir wiring (Hi-Z release, not drive-high) must be tuned against the timing verified in Task 3 Step 11 — record any instruction changes made during hardware bring-up back into this file so the source matches what was flashed.
 
-- [ ] **Step 9: [CODE] Implement ps2_core1.c: PIO setup + FIFO feed loop**
+- [x] **Step 9: [CODE] Implement ps2_core1.c: PIO setup + FIFO feed loop**
 
 Create `src/ps2_core1.c`:
 
@@ -597,7 +597,7 @@ void ps2_build_analog_response(uint8_t button_byte0, uint8_t button_byte1,
 }
 ```
 
-- [ ] **Step 10: [CODE] Wire multicore launch into main.c and update CMakeLists.txt**
+- [x] **Step 10: [CODE] Wire multicore launch into main.c and update CMakeLists.txt**
 
 Modify `src/main.c`, replacing the Task 2 smoke-test body:
 
@@ -643,7 +643,7 @@ target_link_libraries(ps2_guitar_adapter
 )
 ```
 
-- [ ] **Step 11: [CODE] Build the firmware target and confirm it compiles**
+- [x] **Step 11: [CODE] Build the firmware target and confirm it compiles**
 
 Run: `cmake -B build -S . && cmake --build build`
 Expected: build succeeds, `build/ps2_guitar_adapter.uf2` produced. Fix any compile errors (PIO header naming, pin conflicts) before proceeding to hardware steps.
