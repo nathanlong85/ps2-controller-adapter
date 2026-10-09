@@ -11,7 +11,7 @@
 
 ## 3. Shared-State Design & PIO PS2 SPI-Slave Implementation (`ps2-protocol`)
 
-- [ ] 3.1 Design and implement the core0/core1 shared-state struct (button bits, analog axes, mode/config state) using a lock-free double-buffer/seqlock pattern; keep core1 heap-free with no blocking/shared SDK locks
+- [x] 3.1 Design and implement the core0/core1 shared-state struct (button bits, analog axes, mode/config state) using a lock-free double-buffer/seqlock pattern; keep core1 heap-free with no blocking/shared SDK locks
 - [ ] 3.2 Implement PIO program as a pure clocked shift-register/ACK engine: sample COMMAND on clock rising edge, drive DATA on clock falling edge, respond to ATT/CS going low; response content/length supplied by C, not hardcoded in PIO
 - [ ] 3.3 Implement ACK line assertion in PIO after each byte except the last, releasing to high-impedance (not driving high) to correctly emulate the open-drain line
 - [ ] 3.4 Implement ATT-abort recovery: resync the PIO state machine to await the next poll if ATT/CS rises before a response completes

@@ -268,7 +268,7 @@ git commit -m "Add PS2 wiring smoke-test firmware"
 
 ### Step group A: Shared state struct (host-testable)
 
-- [ ] **Step 1: [CODE] Write the shared_state seqlock header**
+- [x] **Step 1: [CODE] Write the shared_state seqlock header**
 
 Create `src/shared_state.h`:
 
@@ -305,7 +305,7 @@ void shared_state_read(shared_state_t *dst);
 #endif
 ```
 
-- [ ] **Step 2: [CODE] Implement the seqlock**
+- [x] **Step 2: [CODE] Implement the seqlock**
 
 Create `src/shared_state.c`:
 
@@ -352,7 +352,7 @@ void shared_state_read(shared_state_t *dst) {
 
 (Remove the stray `#endif` at the end — it's a `.c` file, not a header; final file must not include it.)
 
-- [ ] **Step 3: [CODE] Write host-buildable unit test for the seqlock**
+- [x] **Step 3: [CODE] Write host-buildable unit test for the seqlock**
 
 Create `tests/host/CMakeLists.txt`:
 
