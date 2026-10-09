@@ -4,12 +4,39 @@
 #include "shared_state.h"
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
+#include <assert.h>
 
 #define PIN_DATA    5
 #define PIN_CLOCK   3
 #define PIN_COMMAND 4
 #define PIN_ATT     2
 #define PIN_ACK     6
+
+// The PIO program waits on CLOCK/ATT by absolute GPIO number.
+static_assert(PIN_ATT == ps2_slave_PIN_ATT, "PIN_ATT must match ps2_pio.pio");
+static_assert(PIN_CLOCK == ps2_slave_PIN_CLOCK, "PIN_CLOCK must match ps2_pio.pio");
+
+// TX FIFO word: bits 7:0 = byte, bit 8 = ACK after this byte (see ps2_pio.pio).
+#define TX_ACK_FLAG (1u << 8)
+
+// Byte 0 of every response is 0xFF (sent while the console sends 0x01).
+#define TX_FIRST_WORD (0xFFu | TX_ACK_FLAG)
+
+// Puts the SM back at entry_point (waiting for ATT low) with empty FIFOs,
+// ACK released (input, output value latched low) and DATA idling high,
+// then preloads byte 0 so it is ready the instant ATT falls.
+static void ps2_sm_reset(PIO pio, uint sm, uint offset) {
+    const uint32_t mask = (1u << PIN_DATA) | (1u << PIN_ACK);
+
+    pio_sm_set_enabled(pio, sm, false);
+    pio_sm_clear_fifos(pio, sm);
+    pio_sm_restart(pio, sm);
+    pio_sm_set_pins_with_mask(pio, sm, 1u << PIN_DATA, mask);
+    pio_sm_set_pindirs_with_mask(pio, sm, 1u << PIN_DATA, mask);
+    pio_sm_exec(pio, sm, pio_encode_jmp(offset + ps2_slave_offset_entry_point));
+    pio_sm_put(pio, sm, TX_FIRST_WORD);
+    pio_sm_set_enabled(pio, sm, true);
+}
 
 void core1_entry(void) {
     PIO pio = pio0;
@@ -21,24 +48,35 @@ void core1_entry(void) {
     sm_config_set_out_pins(&c, PIN_DATA, 1);
     sm_config_set_jmp_pin(&c, PIN_ATT);
     sm_config_set_sideset_pins(&c, PIN_ACK);
-    sm_config_set_in_shift(&c, false, true, 8);
-    sm_config_set_out_shift(&c, true, true, 8);
+    // LSB first in both directions; explicit push/pull in the program.
+    sm_config_set_in_shift(&c, true, false, 32);
+    sm_config_set_out_shift(&c, true, false, 32);
 
     pio_gpio_init(pio, PIN_DATA);
     pio_gpio_init(pio, PIN_ACK);
-    pio_sm_set_consecutive_pindirs(pio, sm, PIN_DATA, 1, true);
+    // gpio_init (via gpio_set_function) enables the input buffer and, on
+    // RP2350, clears pad isolation; gpio_pull_up alone does neither. PIO
+    // reads these pins' inputs regardless of their function select.
+    gpio_init(PIN_ATT);
+    gpio_init(PIN_CLOCK);
+    gpio_init(PIN_COMMAND);
     gpio_pull_up(PIN_ATT);
     gpio_pull_up(PIN_CLOCK);
     gpio_pull_up(PIN_COMMAND);
 
     pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
+    ps2_sm_reset(pio, sm, offset);
 
     shared_state_t state;
+    uint8_t response[9];
     while (true) {
-        shared_state_read(&state);
+        while (gpio_get(PIN_ATT)) {
+            tight_loop_contents();
+        }
 
-        uint8_t response[9];
+        // The SM is already shifting out the preloaded byte 0 (~16us+ per
+        // byte), so there is ample time to build and queue bytes 1..n-1.
+        shared_state_read(&state);
         uint response_len;
         if (state.mode == PS2_MODE_DIGITAL) {
             ps2_build_digital_response(state.button_byte0, state.button_byte1, response);
@@ -50,8 +88,29 @@ void core1_entry(void) {
             response_len = 9;
         }
 
-        for (uint i = 0; i < response_len; i++) {
-            pio_sm_put_blocking(pio, sm, response[i]);
+        for (uint i = 1; i < response_len; i++) {
+            uint32_t word = response[i];
+            if (i < response_len - 1) {
+                word |= TX_ACK_FLAG;
+            }
+            bool aborted = false;
+            while (pio_sm_is_tx_fifo_full(pio, sm)) {
+                if (gpio_get(PIN_ATT)) {
+                    aborted = true;
+                    break;
+                }
+            }
+            if (aborted) {
+                break;
+            }
+            pio_sm_put(pio, sm, word);
         }
+
+        // RX command bytes are not dispatched yet (Task 6); the reset below
+        // discards them along with any unsent TX words.
+        while (!gpio_get(PIN_ATT)) {
+            tight_loop_contents();
+        }
+        ps2_sm_reset(pio, sm, offset);
     }
 }
