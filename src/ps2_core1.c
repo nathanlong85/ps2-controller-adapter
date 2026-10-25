@@ -74,6 +74,12 @@ void ps2_pio_setup(void) {
     gpio_pull_up(PIN_ATT);
     gpio_pull_up(PIN_CLOCK);
     gpio_pull_up(PIN_COMMAND);
+    // DATA is open-drain (Hi-Z = logic high) but, unlike ACK, nothing on
+    // this test console was found pulling it up externally: the PIO
+    // program's Hi-Z state floated low instead of high. A weak internal
+    // pull-up fixes this and is harmless even if a memory card is also
+    // sharing this line with its own driver.
+    gpio_pull_up(PIN_DATA);
 
     pio_sm_init(pio, sm, offset, &c);
     ps2_sm_reset(pio, sm, offset);
