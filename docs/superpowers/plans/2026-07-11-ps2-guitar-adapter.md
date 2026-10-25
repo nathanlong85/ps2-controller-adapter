@@ -648,7 +648,7 @@ target_link_libraries(ps2_guitar_adapter
 Run: `cmake -B build -S . && cmake --build build`
 Expected: build succeeds, `build/ps2_guitar_adapter.uf2` produced. Fix any compile errors (PIO header naming, pin conflicts) before proceeding to hardware steps.
 
-- [ ] **Step 12: [HW] Flash and verify PS2 recognizes the adapter as a digital controller**
+- [x] **Step 12: [HW] Flash and verify PS2 recognizes the adapter as a digital controller**
 
 Ask the user to:
 1. Wire DATA and ACK (in addition to ATT/CLOCK/COMMAND/GND from Task 2) per the verified pinout from Task 1 Step 3.
@@ -657,18 +657,42 @@ Ask the user to:
 
 Expected: user reports the PS2 shows a connected digital pad, idle state (no phantom button presses). If not recognized, ask the user to report serial diagnostics (add temporary printf instrumentation to `core1_entry`'s response loop if needed, being mindful this printf must not run on the time-critical path in the final build) and iterate on PIO timing (Step 8) before proceeding.
 
-- [ ] **Step 13: [HW] Wire pushbutton and confirm end-to-end button press**
+Done: a secondary USB-PS2-to-HID adapter used for convenience testing (no
+screen needed) truncated every poll regardless of controller ID — isolated
+via logic analyzer + serial instrumentation to a limitation of that
+adapter, not this firmware (see SDD ledger). Verified instead against the
+real PS2 console directly with a logic analyzer: full 5-byte digital
+response (`ff 41 5a ff ff`) with correct ACK handshaking on every poll,
+COMMAND bytes confirmed as genuine `01 42` controller polls.
+
+- [x] **Step 13: [HW] Wire pushbutton and confirm end-to-end button press**
 
 Ask the user to wire a physical pushbutton to a spare GPIO (e.g. GPIO 7) with a pull-up, add a temporary polling loop in `main.c` that calls `shared_state_write` with `button_byte0 = gpio_get(7) ? 0xFF : 0xFE` (bit 0 cleared when pressed) each iteration, rebuild, reflash, and press the button while watching the PS2's controller test screen.
 
 Expected: user reports the corresponding button (bit 0 of byte 0 = Select, per the ps2-protocol spec's byte layout) shows pressed on the PS2 side exactly while the physical button is held, with no stuck/phantom presses. Once confirmed, this temporary polling code is removed in Task 7 Step 2 when the real mapping wiring replaces it — leave it in place until then since it is the only input source until Task 7.
 
-- [ ] **Step 14: Commit**
+Done: verified via logic analyzer against the real PS2 (no screen needed)
+— `button_byte1` bit 6 (Cross/X) correctly read as `0xbf` across 3
+consecutive polls while held, `0xff` idle otherwise. **Deviation from this
+step's text:** the temporary pushbutton polling code was reverted out of
+`main.c` right after verification, rather than left in place until Task 7
+as originally written here — ruled reasonable since it was purely a
+bring-up verification aid and its removal keeps `main.c` clean for Task 4's
+USB host integration; the exact test is documented in the SDD ledger if it
+needs re-creating before Task 7.
+
+- [x] **Step 14: Commit**
 
 ```bash
 git add src/shared_state.h src/shared_state.c src/ps2_pio.pio src/ps2_protocol.h src/ps2_protocol.c src/ps2_core1.h src/ps2_core1.c src/main.c CMakeLists.txt tests/host/CMakeLists.txt tests/host/test_ps2_protocol_bytes.c
 git commit -m "Implement PIO PS2 SPI-slave digital response and shared-state seqlock"
 ```
+
+Done: landed across multiple commits per subagent-driven-development's
+task-group dispatch (not one combined commit) — `81c1be5..7408c44` on
+`feature/20260711/ps2-guitar-adapter`, including two PIO fix rounds, the
+HW bring-up checkoff, and a final whole-branch-review fix round. Full
+history in the SDD ledger.
 
 ---
 
