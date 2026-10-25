@@ -1,0 +1,14 @@
+#ifndef TUSB_CONFIG_H
+#define TUSB_CONFIG_H
+
+#define CFG_TUSB_MCU OPT_MCU_RP2040
+#define CFG_TUSB_OS OPT_OS_PICO
+#define CFG_TUSB_RHPORT0_MODE OPT_MODE_HOST
+
+#define BOARD_TUH_RHPORT 0
+
+#define CFG_TUH_HID 4
+#define CFG_TUH_HUB 1
+#define CFG_TUH_DEVICE_MAX 4
+
+#endif

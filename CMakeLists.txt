@@ -31,14 +31,19 @@ add_executable(ps2_guitar_adapter
     src/shared_state.c
     src/ps2_protocol.c
     src/ps2_core1.c
+    src/usb_hid_host.c
 )
 
 pico_generate_pio_header(ps2_guitar_adapter ${CMAKE_CURRENT_LIST_DIR}/src/ps2_pio.pio)
+
+target_include_directories(ps2_guitar_adapter PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src)
 
 target_link_libraries(ps2_guitar_adapter
     pico_stdlib
     pico_multicore
     hardware_pio
+    tinyusb_host
+    tinyusb_board
 )
 
 pico_enable_stdio_usb(ps2_guitar_adapter 0)
