@@ -16,8 +16,8 @@
 - [x] 3.3 Implement ACK line assertion in PIO after each byte except the last, releasing to high-impedance (not driving high) to correctly emulate the open-drain line
 - [x] 3.4 Implement ATT-abort recovery: resync the PIO state machine to await the next poll if ATT/CS rises before a response completes
 - [x] 3.5 Implement the standard digital-controller poll/response sequence (`0x01`/`0xFF`, `0x42`/`0x41`, `0x5A`, button byte 0, button byte 1) with a hardcoded fixed button_state, including power-on idle response before any input source connects
-- [ ] 3.6 Flash to Pico, verify against real PS2 that it's recognized as a connected digital controller (e.g. via a PS2 test/homebrew tool or a game's controller test screen)
-- [ ] 3.7 Wire a physical pushbutton to a spare GPIO, toggle a single bit in button_state on press, and confirm the PS2 sees the corresponding button press end-to-end
+- [x] 3.6 Flash to Pico, verify against real PS2 that it's recognized as a connected digital controller (confirmed via logic analyzer against a real PS2: full 5-byte digital-pad response `ff 41 5a ff ff` with correct ACK handshaking on every poll; a secondary USB-PS2 adapter used for convenience testing truncated reads regardless of controller ID reported — isolated to that adapter's own limitation, not our firmware)
+- [x] 3.7 Wire a physical pushbutton to a spare GPIO, toggle a single bit in button_state on press, and confirm the PS2 sees the corresponding button press end-to-end (confirmed via logic analyzer against the real PS2: `button_byte1` correctly read as `0xbf` [Cross/X pressed] across 3 consecutive polls while the test button was held, `0xff` idle otherwise)
 
 ## 4. USB Host Bring-Up (`usb-guitar-input`, generic)
 
