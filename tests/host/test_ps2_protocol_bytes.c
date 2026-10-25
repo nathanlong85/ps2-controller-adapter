@@ -19,9 +19,18 @@ static void test_digital_response_button_pressed(void) {
     printf("test_digital_response_button_pressed: PASS\n");
 }
 
+static void test_analog_response_layout(void) {
+    uint8_t out[9];
+    ps2_build_analog_response(0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, out);
+    uint8_t expected[9] = {0xFF, 0x73, 0x5A, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC};
+    assert(memcmp(out, expected, 9) == 0);
+    printf("test_analog_response_layout: PASS\n");
+}
+
 int main(void) {
     test_digital_response_idle();
     test_digital_response_button_pressed();
+    test_analog_response_layout();
     printf("All tests passed.\n");
     return 0;
 }
