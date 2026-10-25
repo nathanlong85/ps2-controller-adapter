@@ -64,10 +64,10 @@ signal-level bring-up described in Task 2 onward.
 | GPIO 6    | ACK        | Green      |
 | any GND pin | GND (pin 4) | Black    |
 
-DATA and ACK are physically wired to GPIO 5/6 ahead of schedule (soldered alongside the
-other signals), but Task 2's firmware is listen-only and doesn't configure or read these
-two pins yet — they stay unused (floating input, RP2350 default reset state) until
-Task 3 adds the ACK handshake and DATA shift-in logic.
+DATA and ACK (GPIO 5/6) are live as of Task 3: the PIO engine (`src/ps2_pio.pio`) drives
+both as open-drain outputs — DATA shifts out the response bytes, ACK pulses low after
+each byte — and releases both to Hi-Z whenever ATT is high (DATA is shared with the
+memory card on the same port). Task 2's listen-only firmware did not use them.
 
 ---
 

@@ -16,23 +16,26 @@
 static_assert(PIN_ATT == ps2_slave_PIN_ATT, "PIN_ATT must match ps2_pio.pio");
 static_assert(PIN_CLOCK == ps2_slave_PIN_CLOCK, "PIN_CLOCK must match ps2_pio.pio");
 
-// TX FIFO word: bits 7:0 = byte, bit 8 = ACK after this byte (see ps2_pio.pio).
+// TX FIFO word: bits 7:0 = byte, inverted (DATA is open-drain: the program
+// shifts out pindirs, 1 = pull low), bit 8 = ACK after this byte (see
+// ps2_pio.pio). Bit 8 is a control bit and is never inverted.
 #define TX_ACK_FLAG (1u << 8)
+#define TX_DATA(b)  ((uint32_t)(uint8_t)~(b))
 
 // Byte 0 of every response is 0xFF (sent while the console sends 0x01).
-#define TX_FIRST_WORD (0xFFu | TX_ACK_FLAG)
+#define TX_FIRST_WORD (TX_DATA(0xFFu) | TX_ACK_FLAG)
 
 // Puts the SM back at entry_point (waiting for ATT low) with empty FIFOs,
-// ACK and DATA both released to Hi-Z (output values latched: ACK low, DATA
-// high; the program re-enables DATA's output once ATT falls), then preloads
-// byte 0 so it is ready the instant ATT falls. Takes no SDK locks.
+// ACK and DATA both released to Hi-Z with their output values latched low
+// (both are open-drain: the program only toggles their pindirs), then
+// preloads byte 0 so it is ready the instant ATT falls. Takes no SDK locks.
 static void ps2_sm_reset(PIO pio, uint sm, uint offset) {
     const uint32_t mask = (1u << PIN_DATA) | (1u << PIN_ACK);
 
     pio_sm_set_enabled(pio, sm, false);
     pio_sm_clear_fifos(pio, sm);
     pio_sm_restart(pio, sm);
-    pio_sm_set_pins_with_mask(pio, sm, 1u << PIN_DATA, mask);
+    pio_sm_set_pins_with_mask(pio, sm, 0, mask);
     pio_sm_set_pindirs_with_mask(pio, sm, 0, mask);
     pio_sm_exec(pio, sm, pio_encode_jmp(offset + ps2_slave_offset_entry_point));
     pio_sm_put(pio, sm, TX_FIRST_WORD);
@@ -47,12 +50,13 @@ static uint ps2_offset;
 void ps2_pio_setup(void) {
     PIO pio = pio0;
     uint sm = 0;
+    // Claim SM 0 so a later PIO user (e.g. the CYW43 driver) can't take it.
+    pio_sm_claim(pio, sm);
     uint offset = pio_add_program(pio, &ps2_slave_program);
 
     pio_sm_config c = ps2_slave_program_get_default_config(offset);
     sm_config_set_in_pins(&c, PIN_COMMAND);
     sm_config_set_out_pins(&c, PIN_DATA, 1);
-    sm_config_set_set_pins(&c, PIN_DATA, 1);
     sm_config_set_jmp_pin(&c, PIN_ATT);
     sm_config_set_sideset_pins(&c, PIN_ACK);
     // LSB first in both directions; explicit push/pull in the program.
@@ -91,8 +95,9 @@ void core1_entry(void) {
             tight_loop_contents();
         }
 
-        // The SM is already shifting out the preloaded byte 0 (~16us+ per
-        // byte), so there is ample time to build and queue bytes 1..n-1.
+        // The SM is already shifting out the preloaded byte 0 (>=16us per
+        // byte at 500kHz, ~32us at the console's typical 250kHz), so there
+        // is ample time to build and queue bytes 1..n-1.
         shared_state_read(&state);
         uint response_len;
         if (state.mode == PS2_MODE_DIGITAL) {
@@ -106,7 +111,7 @@ void core1_entry(void) {
         }
 
         for (uint i = 1; i < response_len; i++) {
-            uint32_t word = response[i];
+            uint32_t word = TX_DATA(response[i]);
             if (i < response_len - 1) {
                 word |= TX_ACK_FLAG;
             }

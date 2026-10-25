@@ -21,8 +21,12 @@ typedef struct {
 } shared_state_t;
 
 // Seqlock-protected shared state. Core0 is the sole writer, core1 the sole
-// reader. Core1 must never block: shared_state_read() retries locally on a
-// torn read instead of waiting on core0.
+// reader. shared_state_read() takes no lock and retries locally on a torn
+// read, so core1 never waits on a lock held by core0. This is lock-free, not
+// wait-free: if core0 were delayed mid-write, core1 would keep retrying until
+// the write completes. Today core0 never stalls inside its short write
+// window; Task 4 should revisit this once USB interrupts exist on core0 (an
+// IRQ landing mid-write could stretch that window).
 void shared_state_init(void);
 void shared_state_write(const shared_state_t *src);
 void shared_state_read(shared_state_t *dst);
