@@ -34,10 +34,10 @@
 
 ## 6. PS2 Analog Mode Protocol (`ps2-analog-mode`)
 
-- [ ] 6.1 Implement config-mode entry/exit (`0x43`) and the escape-mode (`0xF3`) poll response
-- [ ] 6.2 Implement `0x44` mode switching between digital (`0x41`, 5-byte) and analog (`0x73`, 9-byte) response, defaulting to digital at boot
-- [ ] 6.3 Implement the analog poll response format (button bytes + 4 analog axis bytes, centered at `0x80`)
-- [ ] 6.4 Implement benign dummy responses for `0x45`/`0x46`/`0x47`/`0x4D`; confirm `0x4F` is ignored and the full analog frame is always returned
+- [x] 6.1 Implement config-mode entry/exit (`0x43`) and the escape-mode (`0xF3`) poll response (`ps2_protocol.c`'s `ps2_apply_command_effect`/`ps2_identification_byte`, wired into `ps2_core1.c`'s RX dispatch; host-tested)
+- [x] 6.2 Implement `0x44` mode switching between digital (`0x41`, 5-byte) and analog (`0x73`, 9-byte) response, defaulting to digital at boot (`ps2_apply_command_effect`/`ps2_response_length`; host-tested)
+- [x] 6.3 Implement the analog poll response format (button bytes + 4 analog axis bytes, centered at `0x80`) (reuses the existing `ps2_build_analog_response` from Task 3, now reachable via mode switching instead of being dead code)
+- [x] 6.4 Implement benign dummy responses for `0x45`/`0x46`/`0x47`/`0x4D`; confirm `0x4F` is ignored and the full analog frame is always returned (`ps2_build_config_dummy_response`, `ps2_command_is_config_subcommand`; host-tested including the 0x4F-ignored case)
 - [ ] 6.5 Flash to Pico, verify against real PS2/game that mode-switching and analog stick bytes are recognized correctly
 
 ## 7. Guitar-to-PS2 Mapping & Full Integration (`guitar-to-ps2-mapping`)

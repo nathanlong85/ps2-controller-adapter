@@ -47,6 +47,22 @@ static PIO ps2_pio;
 static uint ps2_sm;
 static uint ps2_offset;
 
+// Pops one received COMMAND byte from the RX FIFO (bits 31:24 of the word,
+// per ps2_pio.pio), blocking only until it arrives or ATT rises. The CPU
+// runs orders of magnitude faster than the ~32-64us/byte SPI clock, so by
+// the time core1's C code reaches these reads the bytes have almost always
+// already arrived; the ATT check is a safety net if the console aborts
+// mid-transaction, not the expected path.
+static bool ps2_rx_read_byte(PIO pio, uint sm, uint8_t *out) {
+    while (pio_sm_is_rx_fifo_empty(pio, sm)) {
+        if (gpio_get(PIN_ATT)) {
+            return false;
+        }
+    }
+    *out = (uint8_t)(pio_sm_get(pio, sm) >> 24);
+    return true;
+}
+
 void ps2_pio_setup(void) {
     PIO pio = pio0;
     uint sm = 0;
@@ -94,6 +110,9 @@ void core1_entry(void) {
     uint sm = ps2_sm;
     uint offset = ps2_offset;
 
+    ps2_protocol_state_t protocol_state;
+    ps2_protocol_state_init(&protocol_state);
+
     shared_state_t state;
     uint8_t response[9];
     while (true) {
@@ -102,18 +121,37 @@ void core1_entry(void) {
         }
 
         // The SM is already shifting out the preloaded byte 0 (>=16us per
-        // byte at 500kHz, ~32us at the console's typical 250kHz), so there
-        // is ample time to build and queue bytes 1..n-1.
+        // byte at 500kHz, ~32us at the console's typical 250kHz). Drain the
+        // matching RX bytes - index 0 (always 0x01, discarded) and index 1
+        // (the command ID) - before deciding how to build the rest of the
+        // response; see ps2_rx_read_byte's comment for why this essentially
+        // never blocks in practice. If the console aborts before the
+        // command ID arrives, fail safe to a normal poll using current
+        // state rather than hanging or sending garbage.
+        uint8_t discard;
+        uint8_t command_id = PS2_CMD_POLL;
+        bool have_command_id =
+            ps2_rx_read_byte(pio, sm, &discard) && ps2_rx_read_byte(pio, sm, &command_id);
+        if (!have_command_id) {
+            command_id = PS2_CMD_POLL;
+        }
+
+        // Response content is built from protocol_state as of the START of
+        // this transaction: a config command's effect (entering/exiting
+        // config mode, switching digital/analog) is only visible starting
+        // with the *next* poll, per spec.
+        ps2_protocol_state_t state_for_response = protocol_state;
         shared_state_read(&state);
-        uint response_len;
-        if (state.mode == PS2_MODE_DIGITAL) {
+
+        uint response_len = ps2_response_length(&state_for_response, command_id);
+        if (ps2_should_use_dummy_response(&state_for_response, command_id)) {
+            ps2_build_config_dummy_response(ps2_identification_byte(&state_for_response), response);
+        } else if (state_for_response.mode == PS2_MODE_DIGITAL) {
             ps2_build_digital_response(state.button_byte0, state.button_byte1, response);
-            response_len = 5;
         } else {
             ps2_build_analog_response(state.button_byte0, state.button_byte1,
                                        state.right_stick_x, state.right_stick_y,
                                        state.left_stick_x, state.left_stick_y, response);
-            response_len = 9;
         }
 
         for (uint i = 1; i < response_len; i++) {
@@ -134,8 +172,18 @@ void core1_entry(void) {
             pio_sm_put(pio, sm, word);
         }
 
-        // RX command bytes are not dispatched yet (Task 6); the reset below
-        // discards them along with any unsent TX words.
+        // Command byte index 3 (the first data byte) only matters for
+        // PS2_CMD_CONFIG_MODE/PS2_CMD_SET_MODE, and only takes effect for
+        // the *next* transaction, so reading it any time before the next
+        // ATT fall is fine - no need to race the TX loop above for it.
+        if (have_command_id &&
+            (command_id == PS2_CMD_CONFIG_MODE || command_id == PS2_CMD_SET_MODE)) {
+            uint8_t data_byte0;
+            if (ps2_rx_read_byte(pio, sm, &discard) && ps2_rx_read_byte(pio, sm, &data_byte0)) {
+                ps2_apply_command_effect(&protocol_state, command_id, data_byte0);
+            }
+        }
+
         while (!gpio_get(PIN_ATT)) {
             tight_loop_contents();
         }

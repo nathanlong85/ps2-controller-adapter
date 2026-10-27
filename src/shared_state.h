@@ -3,11 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
-typedef enum {
-    PS2_MODE_DIGITAL = 0,
-    PS2_MODE_ANALOG = 1,
-} ps2_mode_t;
+#include "ps2_protocol.h"
 
 typedef struct {
     uint8_t button_byte0;   // active-low bitmask, byte 0
