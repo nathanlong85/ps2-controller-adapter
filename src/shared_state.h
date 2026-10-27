@@ -2,8 +2,6 @@
 #define SHARED_STATE_H
 
 #include <stdint.h>
-#include <stdbool.h>
-#include "ps2_protocol.h"
 
 typedef struct {
     uint8_t button_byte0;   // active-low bitmask, byte 0
@@ -12,8 +10,6 @@ typedef struct {
     uint8_t right_stick_y;
     uint8_t left_stick_x;
     uint8_t left_stick_y;
-    ps2_mode_t mode;
-    bool config_mode_active;
 } shared_state_t;
 
 // Seqlock-protected shared state. Core0 is the sole writer, core1 the sole

@@ -13,8 +13,6 @@ void shared_state_init(void) {
         .right_stick_y = 0x80,
         .left_stick_x = 0x80,
         .left_stick_y = 0x80,
-        .mode = PS2_MODE_DIGITAL,
-        .config_mode_active = false,
     };
     shared_state_write(&idle);
 }
