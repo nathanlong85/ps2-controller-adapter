@@ -32,6 +32,7 @@ add_executable(ps2_guitar_adapter
     src/ps2_protocol.c
     src/ps2_core1.c
     src/usb_hid_host.c
+    src/guitar_input.c
 )
 
 pico_generate_pio_header(ps2_guitar_adapter ${CMAKE_CURRENT_LIST_DIR}/src/ps2_pio.pio)

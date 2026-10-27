@@ -14,6 +14,13 @@ add_executable(test_shared_state
 )
 target_include_directories(test_shared_state PRIVATE ../../src)
 
+add_executable(test_guitar_input
+    test_guitar_input.c
+    ../../src/guitar_input.c
+)
+target_include_directories(test_guitar_input PRIVATE ../../src)
+
 enable_testing()
 add_test(NAME ps2_protocol_bytes COMMAND test_ps2_protocol_bytes)
 add_test(NAME shared_state COMMAND test_shared_state)
+add_test(NAME guitar_input COMMAND test_guitar_input)
