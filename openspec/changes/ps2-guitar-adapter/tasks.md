@@ -26,11 +26,11 @@
 
 ## 5. CRKD Controller Report Capture & Decoding
 
-- [ ] 5.1 Connect the CRKD Gibson Les Paul controller to a PC in PC mode; capture its USB HID report descriptor and sample input reports (e.g. via `usbhid-dump`, Wireshark USBPcap, or equivalent)
-- [ ] 5.2 Confirm the CRKD enumerates as a standard HID gamepad in PC mode (not XInput); document actual report byte layout for frets, strum, start/select
-- [ ] 5.3 Capture and document the whammy bar's report format (rest value, direction/polarity, bit width) and tilt's report format (analog axis vs. digital bit)
-- [ ] 5.4 Connect the CRKD controller to the Pico's USB host (via powered hub) and print raw HID reports over serial to confirm the same report format holds on-device
-- [ ] 5.5 Implement HID report decoding (frets, strum, start/select, whammy, tilt) into the normalized guitar input state per the `usb-guitar-input` spec, including malformed-report and disconnect fail-safe handling
+- [x] 5.1 Connect the CRKD Gibson Les Paul controller to a PC in PC mode; capture its USB HID report descriptor and sample input reports (e.g. via `usbhid-dump`, Wireshark USBPcap, or equivalent) (captured via a custom hidapi tool on macOS, VID 0x0351; "PC" slider position is actually XInput (PID 0x1000, bDeviceClass=0xFF) — the standard-HID mode is "Android" slider + dial 1-8 (PID 0x5500, bDeviceClass=0x00); see progress ledger for full descriptor)
+- [x] 5.2 Confirm the CRKD enumerates as a standard HID gamepad in PC mode (not XInput); document actual report byte layout for frets, strum, start/select (confirmed HID in Android-slider mode, not "PC" slider mode which is XInput; frets=byte0 bits 0/1/3/4/6, strum=byte2 hat switch 0/4, start/select=byte1 bits 3/2)
+- [x] 5.3 Capture and document the whammy bar's report format (rest value, direction/polarity, bit width) and tilt's report format (analog axis vs. digital bit) (whammy = byte7, 8-bit unsigned analog 0x00 rest to 0xff full depth, shares axis with LT; tilt = byte2 hat switch value 6, digital/non-directional, NOT analog — initial analog-looking readings were cross-talk from the left analog stick)
+- [x] 5.4 Connect the CRKD controller to the Pico's USB host (via powered hub) and print raw HID reports over serial to confirm the same report format holds on-device (confirmed on real hardware; the original hang was a bad powered hub, not firmware — see progress ledger for the full isolation and root-cause writeup)
+- [x] 5.5 Implement HID report decoding (frets, strum, start/select, whammy, tilt) into the normalized guitar input state per the `usb-guitar-input` spec, including malformed-report and disconnect fail-safe handling (new `guitar_input.h/.c` module, wired into `usb_hid_host.c`'s mount/report/unmount callbacks; 8 host-side unit tests cover every spec scenario, all passing)
 
 ## 6. PS2 Analog Mode Protocol (`ps2-analog-mode`)
 

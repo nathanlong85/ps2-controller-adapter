@@ -1,5 +1,12 @@
+#include "usb_hid_host.h"
 #include "tusb.h"
 #include <stdio.h>
+
+static guitar_input_t g_guitar_input;
+
+void usb_hid_host_get_guitar_input(guitar_input_t *dst) {
+    *dst = g_guitar_input;
+}
 
 void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const *desc_report, uint16_t desc_len) {
     printf("HID mounted: dev_addr=%u instance=%u desc_len=%u\n", dev_addr, instance, desc_len);
@@ -8,6 +15,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const *desc_re
 
 void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance) {
     printf("HID unmounted: dev_addr=%u instance=%u\n", dev_addr, instance);
+    guitar_input_set_idle(&g_guitar_input);
 }
 
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const *report, uint16_t len) {
@@ -16,5 +24,6 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
         printf("%02X ", report[i]);
     }
     printf("\n");
+    guitar_input_decode(&g_guitar_input, report, len);
     tuh_hid_receive_report(dev_addr, instance);
 }
