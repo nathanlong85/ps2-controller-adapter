@@ -21,8 +21,8 @@
 
 ## 4. USB Host Bring-Up (`usb-guitar-input`, generic)
 
-- [ ] 4.1 Integrate TinyUSB host into the project alongside the PIO code; confirm `tuh_task()` runs without disrupting PIO PS2 timing
-- [ ] 4.2 Verify basic USB host function using a simple HID device (e.g. a mouse or keyboard) — confirm `tuh_hid_mount_cb`/`tuh_hid_report_received_cb` fire and raw report bytes can be printed over serial
+- [x] 4.1 Integrate TinyUSB host into the project alongside the PIO code; confirm `tuh_task()` runs without disrupting PIO PS2 timing
+- [x] 4.2 Verify basic USB host function using a simple HID device (e.g. a mouse or keyboard) — confirm `tuh_hid_mount_cb`/`tuh_hid_report_received_cb` fire and raw report bytes can be printed over serial
 
 ## 5. CRKD Controller Report Capture & Decoding
 

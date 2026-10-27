@@ -806,13 +806,15 @@ target_link_libraries(ps2_guitar_adapter
 Run: `cmake -B build -S . && cmake --build build`
 Expected: build succeeds. Resolve any missing TinyUSB config symbols (commonly `CFG_TUH_*` values) before proceeding.
 
-- [ ] **Step 6: [HW] Verify basic USB host function with a simple HID device**
+- [x] **Step 6: [HW] Verify basic USB host function with a simple HID device**
 
 Ask the user to flash the build, connect a simple USB HID device (mouse or keyboard) to the Pico's USB host port via the powered hub, and observe serial output.
 
 Expected: user reports `HID mounted: ...` followed by repeated `HID report: ... bytes=...` lines as they move the mouse or press keys, confirming `tuh_task()` runs correctly. Also ask the user to confirm the PS2 side (from Task 3) still shows a connected idle digital controller at the same time — this confirms USB host activity doesn't disrupt PIO PS2 timing, per the design doc's stated risk.
 
-- [ ] **Step 7: Commit**
+Actual: confirmed on two different powered hubs with a real USB keyboard. Along the way, found and fixed a real config bug (`CFG_TUH_HUB` was 1, but the first test hub enumerates as two internal hub-class devices, exhausting the hub address pool and asserting in `get_new_address`/`enum_request_set_addr`; bumped to 2). Also found and locally patched a genuine upstream TinyUSB bug (`host/hub.c`'s Get Hub Descriptor request sends `wValue=0` instead of the spec-required descriptor-type encoding, which some strict hubs STALL) — patch lives outside the repo in the shared SDK install at `~/.pico-sdk/sdk/2.3.0/lib/tinyusb/src/host/hub.c`, documented in the SDD ledger since it can't be committed here. PS2 concurrency confirmed via a 3-second logic-analyzer capture taken while the USB keyboard was actively sending HID reports: all 3 PS2 polls in the window decoded to the same `ff 41 5a ff ff` idle-digital-controller response with 4 ACKs each, verified back in Task 3 — USB host activity has no effect on PIO PS2 timing.
+
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/usb_hid_host.c src/tusb_config.h src/main.c CMakeLists.txt
