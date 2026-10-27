@@ -1,28 +1,28 @@
 ## 1. Hardware Prep & Toolchain Bring-Up
 
-- [ ] 1.1 Retrieve Pico 2W, CRKD Gibson Les Paul controller, PS2 console/test harness, powered USB hub, and PS2 controller cable from storage
-- [ ] 1.2 Verify VS Code + official Raspberry Pi Pico extension toolchain still works: build and flash the "blink" example to the Pico 2W
-- [ ] 1.3 Verify PS2 cable wire colors against the documented pinout using a multimeter; record any deviations
+- [x] 1.1 Retrieve Pico 2W, CRKD Gibson Les Paul controller, PS2 console/test harness, powered USB hub, and PS2 controller cable from storage
+- [x] 1.2 Verify VS Code + official Raspberry Pi Pico extension toolchain still works: build and flash the "blink" example to the Pico 2W
+- [x] 1.3 Verify PS2 cable wire colors against the documented pinout using a multimeter; record any deviations (matched standard convention, no deviations)
 
 ## 2. PS2 Protocol Wiring Smoke Test (no PIO yet)
 
-- [ ] 2.1 Write minimal GPIO polling code to detect ATT/CS going low and CLOCK pulses from a real PS2 console, printing observations over serial
-- [ ] 2.2 Confirm via serial output that wiring (DATA/COMMAND/ATT/CLOCK/GND) is correct before proceeding to PIO
+- [x] 2.1 Write minimal GPIO polling code to detect ATT/CS going low and CLOCK pulses from a real PS2 console, printing observations over serial
+- [x] 2.2 Confirm via serial output that wiring (DATA/COMMAND/ATT/CLOCK/GND) is correct before proceeding to PIO (16 clock pulses/transaction over serial, matching a logic-analyzer capture — see commit for root causes found and fixed along the way)
 
 ## 3. Shared-State Design & PIO PS2 SPI-Slave Implementation (`ps2-protocol`)
 
-- [ ] 3.1 Design and implement the core0/core1 shared-state struct (button bits, analog axes, mode/config state) using a lock-free double-buffer/seqlock pattern; keep core1 heap-free with no blocking/shared SDK locks
-- [ ] 3.2 Implement PIO program as a pure clocked shift-register/ACK engine: sample COMMAND on clock rising edge, drive DATA on clock falling edge, respond to ATT/CS going low; response content/length supplied by C, not hardcoded in PIO
-- [ ] 3.3 Implement ACK line assertion in PIO after each byte except the last, releasing to high-impedance (not driving high) to correctly emulate the open-drain line
-- [ ] 3.4 Implement ATT-abort recovery: resync the PIO state machine to await the next poll if ATT/CS rises before a response completes
-- [ ] 3.5 Implement the standard digital-controller poll/response sequence (`0x01`/`0xFF`, `0x42`/`0x41`, `0x5A`, button byte 0, button byte 1) with a hardcoded fixed button_state, including power-on idle response before any input source connects
-- [ ] 3.6 Flash to Pico, verify against real PS2 that it's recognized as a connected digital controller (e.g. via a PS2 test/homebrew tool or a game's controller test screen)
-- [ ] 3.7 Wire a physical pushbutton to a spare GPIO, toggle a single bit in button_state on press, and confirm the PS2 sees the corresponding button press end-to-end
+- [x] 3.1 Design and implement the core0/core1 shared-state struct (button bits, analog axes, mode/config state) using a lock-free double-buffer/seqlock pattern; keep core1 heap-free with no blocking/shared SDK locks
+- [x] 3.2 Implement PIO program as a pure clocked shift-register/ACK engine: sample COMMAND on clock rising edge, drive DATA on clock falling edge, respond to ATT/CS going low; response content/length supplied by C, not hardcoded in PIO
+- [x] 3.3 Implement ACK line assertion in PIO after each byte except the last, releasing to high-impedance (not driving high) to correctly emulate the open-drain line
+- [x] 3.4 Implement ATT-abort recovery: resync the PIO state machine to await the next poll if ATT/CS rises before a response completes
+- [x] 3.5 Implement the standard digital-controller poll/response sequence (`0x01`/`0xFF`, `0x42`/`0x41`, `0x5A`, button byte 0, button byte 1) with a hardcoded fixed button_state, including power-on idle response before any input source connects
+- [x] 3.6 Flash to Pico, verify against real PS2 that it's recognized as a connected digital controller (confirmed via logic analyzer against a real PS2: full 5-byte digital-pad response `ff 41 5a ff ff` with correct ACK handshaking on every poll; a secondary USB-PS2 adapter used for convenience testing truncated reads regardless of controller ID reported — isolated to that adapter's own limitation, not our firmware)
+- [x] 3.7 Wire a physical pushbutton to a spare GPIO, toggle a single bit in button_state on press, and confirm the PS2 sees the corresponding button press end-to-end (confirmed via logic analyzer against the real PS2: `button_byte1` correctly read as `0xbf` [Cross/X pressed] across 3 consecutive polls while the test button was held, `0xff` idle otherwise)
 
 ## 4. USB Host Bring-Up (`usb-guitar-input`, generic)
 
-- [ ] 4.1 Integrate TinyUSB host into the project alongside the PIO code; confirm `tuh_task()` runs without disrupting PIO PS2 timing
-- [ ] 4.2 Verify basic USB host function using a simple HID device (e.g. a mouse or keyboard) — confirm `tuh_hid_mount_cb`/`tuh_hid_report_received_cb` fire and raw report bytes can be printed over serial
+- [x] 4.1 Integrate TinyUSB host into the project alongside the PIO code; confirm `tuh_task()` runs without disrupting PIO PS2 timing
+- [x] 4.2 Verify basic USB host function using a simple HID device (e.g. a mouse or keyboard) — confirm `tuh_hid_mount_cb`/`tuh_hid_report_received_cb` fire and raw report bytes can be printed over serial
 
 ## 5. CRKD Controller Report Capture & Decoding
 

@@ -1,0 +1,58 @@
+; ps2_pio.pio
+; PS2 controller-side SPI-slave shift register + ACK engine.
+; SPI Mode 3: CPOL=1, CPHA=1, LSB first. Console is master, we are slave.
+;
+; Pin mapping (set via pio_sm_config in ps2_core1.c):
+;   DATA and ACK are both open-drain: the pin value is latched low by
+;   ps2_core1.c and only the pin direction is toggled (output = low, Hi-Z = high).
+;   IN pin 0  = COMMAND (sampled on CLOCK rising edge)
+;   OUT pin 0 = DATA, on pindirs (driven on CLOCK falling edge): OUT bit 1 =
+;               output (pulls low), 0 = input/Hi-Z (floats high). Hi-Z when
+;               deselected, since DATA is shared with the memory card.
+;   side-set  = ACK, on pindirs: side 1 = output (pulls low), side 0 = Hi-Z.
+;   jmp pin   = ATT (active low)
+;   CLOCK and ATT are waited on by absolute GPIO number (PIN_CLOCK/PIN_ATT
+;   below, exported to C and static-asserted against ps2_core1.c's pins).
+;
+; TX FIFO word format (one word per byte, explicit pull, no autopull):
+;   bits 7:0 = response byte INVERTED (pindir values), bit 8 = 1 to ACK after
+;   this byte, 0 to not ACK (last byte of a response). If the TX FIFO is
+;   empty when a byte starts, 0x00000000 is used instead (DATA Hi-Z for all
+;   8 bits, i.e. 0xFF on the line, and no ACK, so overrun filler is silent).
+; RX FIFO: one word per received COMMAND byte, in bits 31:24 (explicit
+;   non-blocking push, so an undrained RX FIFO never stalls the SM).
+;
+; ps2_core1.c restarts this SM at entry_point whenever ATT goes high, so
+; the program itself does not need to resync mid-exchange.
+
+.program ps2_slave
+.side_set 1 opt pindirs
+
+.define PUBLIC PIN_ATT   2
+.define PUBLIC PIN_CLOCK 3
+
+public entry_point:
+    wait 0 gpio PIN_ATT       ; wait for the console to select us (ATT low)
+byte_start:
+    mov x, null               ; default word if the TX FIFO is empty
+    pull noblock              ; OSR = next TX word, or X (0x00000000) if empty
+    set x, 7                  ; 8 bits per byte
+bit_loop:
+    wait 0 gpio PIN_CLOCK     ; CLOCK falling edge (CLOCK is high on entry here)
+    out pindirs, 1            ; drive DATA on falling edge (1 = low, 0 = Hi-Z)
+    wait 1 gpio PIN_CLOCK     ; CLOCK rising edge
+    in pins, 1                ; sample COMMAND on rising edge
+    jmp x-- bit_loop
+
+    push noblock              ; received COMMAND byte -> RX FIFO (dropped if full)
+    out y, 1                  ; y = ACK flag (bit 8 of the TX word)
+    jmp !y byte_start         ; last byte: no ACK
+    jmp pin byte_start        ; ATT already high: no ACK (C will restart us)
+
+    set x, 1        side 1    ; assert ACK (pindir -> output, drives low)
+ack_outer:                    ; hold ~2 * (2 + 32 * 8) cycles = ~3.4us @150MHz
+    set y, 31
+ack_inner:
+    jmp y-- ack_inner [7]
+    jmp x-- ack_outer
+    jmp byte_start  side 0    ; release ACK (pindir -> input/Hi-Z)
